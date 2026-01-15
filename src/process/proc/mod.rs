@@ -531,14 +531,16 @@ impl Proc {
             Ok(ret) => ret,
             Err(()) => -1isize as usize,
         };
-        if (self.trace_mask & (1 << a7)) != 0 {
-            // Minimal version: print syscall number
-            println!(
-                "{}: syscall {} -> {}",
-                self.excl.lock().pid,
-                a7,
-                tf.a0 as isize
-            );
+        if (self.trace_mask & (1 << syscall_num)) != 0 {
+            static SYSCALL_NAMES: [&str; 23] = [
+                "", "fork", "exit", "wait", "pipe", "read", "kill", "exec",
+                "fstat", "chdir", "dup", "getpid", "sbrk", "sleep", "uptime",
+                "open", "write", "mknod", "unlink", "link", "mkdir", "close",
+                "trace"
+            ];
+            let name = SYSCALL_NAMES[syscall_num];
+            let ret_val = tf.a0;
+            println!("{}: syscall {} -> {}", self.excl.lock().pid, name, ret_val);
         }
     }
 
