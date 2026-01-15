@@ -882,6 +882,12 @@ impl Proc {
         let pd = unsafe { self.data.get().as_ref().unwrap() };
         pd.pagetable.as_ref().unwrap().copy_in_str(addr, dst)
     }
+    fn sys_trace(&mut self) -> Result<usize, ()> {
+        let mask = self.arg_i32(0) as usize;
+        self.trace_mask = mask;
+        Ok(0)
+    }
+    
 }
 
 /// first user program that calls exec("/init")
