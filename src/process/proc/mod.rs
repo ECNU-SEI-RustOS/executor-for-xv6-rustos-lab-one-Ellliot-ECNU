@@ -103,7 +103,31 @@ pub struct ProcData {
     /// 进程当前工作目录的 inode。
     pub cwd: Option<Inode>,
 }
-
+pub static SYSCALL_NAMES: [&str; 23] = [
+    "",         // 0 不用
+    "fork",     // 1
+    "exit",     // 2
+    "wait",     // 3
+    "pipe",     // 4
+    "read",     // 5
+    "kill",     // 6
+    "exec",     // 7
+    "fstat",    // 8
+    "chdir",    // 9
+    "dup",      // 10
+    "getpid",   // 11
+    "sbrk",     // 12
+    "sleep",    // 13
+    "uptime",   // 14
+    "open",     // 15
+    "write",    // 16
+    "mknod",    // 17
+    "unlink",   // 18
+    "link",     // 19
+    "mkdir",    // 20
+    "close",    // 21
+    "trace"     // 22
+    ];
 
 impl ProcData {
     const fn new() -> Self {
@@ -494,31 +518,7 @@ impl Proc {
     /// - 使用了 `unsafe` 获取 TrapFrame 裸指针，假设指针有效且唯一所有权。
     /// - 该函数应在内核上下文且进程排他访问时调用，避免数据竞争。
     /// - 系统调用执行过程中可能包含更底层的 `unsafe`，调用此函数时需确保整体安全环境。
-    pub static SYSCALL_NAMES: [&str; 23] = [
-    "",         // 0 不用
-    "fork",     // 1
-    "exit",     // 2
-    "wait",     // 3
-    "pipe",     // 4
-    "read",     // 5
-    "kill",     // 6
-    "exec",     // 7
-    "fstat",    // 8
-    "chdir",    // 9
-    "dup",      // 10
-    "getpid",   // 11
-    "sbrk",     // 12
-    "sleep",    // 13
-    "uptime",   // 14
-    "open",     // 15
-    "write",    // 16
-    "mknod",    // 17
-    "unlink",   // 18
-    "link",     // 19
-    "mkdir",    // 20
-    "close",    // 21
-    "trace"     // 22
-    ];
+
     pub fn syscall(&mut self) {
         sstatus::intr_on();
 
