@@ -381,6 +381,7 @@ pub struct Proc {
     pub data: UnsafeCell<ProcData>,
     /// 标识进程是否被杀死的原子布尔变量，用于调度和信号处理。
     pub killed: AtomicBool,
+    pub trace_mask: usize,
 }
 
 impl Proc {
@@ -390,6 +391,7 @@ impl Proc {
             excl: SpinLock::new(ProcExcl::new(), "ProcExcl"),
             data: UnsafeCell::new(ProcData::new()),
             killed: AtomicBool::new(false),
+            trace_mask: 0,
         }
     }
 
@@ -520,6 +522,7 @@ impl Proc {
             19 => self.sys_link(),
             20 => self.sys_mkdir(),
             21 => self.sys_close(),
+            22 => self.sys_trace(), 
             _ => {
                 panic!("unknown syscall num: {}", a7);
             }
@@ -528,6 +531,15 @@ impl Proc {
             Ok(ret) => ret,
             Err(()) => -1isize as usize,
         };
+        if (self.trace_mask & (1 << a7)) != 0 {
+            // Minimal version: print syscall number
+            println!(
+                "{}: syscall {} -> {}",
+                self.excl.lock().pid,
+                a7,
+                tf.a0 as isize
+            );
+        }
     }
 
     /// # 功能说明
@@ -690,6 +702,7 @@ impl Proc {
         
         // copy process name
         cdata.name.copy_from_slice(&pdata.name);
+        child.trace_mask = self.trace_mask;
 
         let cpid = cexcl.pid;
 
