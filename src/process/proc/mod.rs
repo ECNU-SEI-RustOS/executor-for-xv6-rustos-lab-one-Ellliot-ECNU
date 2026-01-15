@@ -494,6 +494,31 @@ impl Proc {
     /// - 使用了 `unsafe` 获取 TrapFrame 裸指针，假设指针有效且唯一所有权。
     /// - 该函数应在内核上下文且进程排他访问时调用，避免数据竞争。
     /// - 系统调用执行过程中可能包含更底层的 `unsafe`，调用此函数时需确保整体安全环境。
+    pub static SYSCALL_NAMES: [&str; 23] = [
+    "",         // 0 不用
+    "fork",     // 1
+    "exit",     // 2
+    "wait",     // 3
+    "pipe",     // 4
+    "read",     // 5
+    "kill",     // 6
+    "exec",     // 7
+    "fstat",    // 8
+    "chdir",    // 9
+    "dup",      // 10
+    "getpid",   // 11
+    "sbrk",     // 12
+    "sleep",    // 13
+    "uptime",   // 14
+    "open",     // 15
+    "write",    // 16
+    "mknod",    // 17
+    "unlink",   // 18
+    "link",     // 19
+    "mkdir",    // 20
+    "close",    // 21
+    "trace"     // 22
+    ];
     pub fn syscall(&mut self) {
         sstatus::intr_on();
 
@@ -531,16 +556,14 @@ impl Proc {
             Ok(ret) => ret,
             Err(()) => -1isize as usize,
         };
-        if (self.trace_mask & (1 << syscall_num)) != 0 {
-            static SYSCALL_NAMES: [&str; 23] = [
-                "", "fork", "exit", "wait", "pipe", "read", "kill", "exec",
-                "fstat", "chdir", "dup", "getpid", "sbrk", "sleep", "uptime",
-                "open", "write", "mknod", "unlink", "link", "mkdir", "close",
-                "trace"
-            ];
-            let name = SYSCALL_NAMES[syscall_num];
-            let ret_val = tf.a0;
-            println!("{}: syscall {} -> {}", self.excl.lock().pid, name, ret_val);
+        if (self.trace_mask & (1 << a7)) != 0 {
+            let name = SYSCALL_NAMES[a7];
+            println!(
+                "{}: syscall {} -> {}",
+                self.excl.lock().pid,
+                name,
+                tf.a0 as isize
+            );
         }
     }
 
